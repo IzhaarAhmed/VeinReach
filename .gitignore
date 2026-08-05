@@ -33,6 +33,12 @@ yarn-error.log*
 .DS_Store
 Thumbs.db
 
+# Claude Code personal settings. `.claude/settings.json` is the shared,
+# committed one; anything *.local.json is per-machine (permission allowlists,
+# MCP toggles) and must not be shared.
+.claude/settings.local.json
+.claude/*.local.json
+
 # Playwright (browser binaries live outside the repo; these are run artifacts)
 test-results/
 playwright-report/
