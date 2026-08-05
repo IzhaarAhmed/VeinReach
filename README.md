@@ -60,6 +60,30 @@ npm install
 npm run dev               # starts SPA on http://localhost:3000
 ```
 
+### 3. Create the first admin
+
+`admin` cannot be chosen at registration, and granting it normally requires an
+existing admin — so a fresh database has none. Until you create one, **no
+hospital or blood bank can be onboarded**, because organisation verification is
+admin-only.
+
+The bootstrap is **promote-only**: it elevates an account that already
+registered through the app, and never creates one from configuration. That
+keeps admin passwords out of your environment and logs.
+
+```bash
+# 1. Register the address normally in the UI (http://localhost:3000/register)
+
+# 2a. Either set it in backend/.env and restart:
+ADMIN_EMAILS=you@example.com
+
+# 2b. …or run the one-off command:
+cd backend && npm run admin:grant -- you@example.com
+```
+
+Idempotent and non-destructive: safe on every boot, never demotes (so removing
+the variable cannot lock you out), and it refuses suspended accounts.
+
 ## What's implemented in this foundation
 
 **Backend**

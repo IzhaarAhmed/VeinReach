@@ -9,11 +9,16 @@ import { initR2 } from './config/r2.js';
 import { initSms } from './config/sms.js';
 import { initSocket } from './realtime/io.js';
 import { startRequestWorker, stopRequestWorker } from './workers/request.worker.js';
+import { ensureAdmins } from './services/bootstrap.service.js';
 import { logger } from './utils/logger.js';
 
 async function start() {
   validateEnv(); // fail fast if required vars are missing
   await connectDB();
+
+  // Promote any configured first admins. Never fatal: a bootstrap problem must
+  // not stop the API from serving donors and requests.
+  await ensureAdmins().catch((err) => logger.error('admin bootstrap failed', err));
   await initRedis();
   await initMailer();
   await initFcm();

@@ -49,6 +49,16 @@ export const env = {
 
   mongoUri: process.env.MONGODB_URI,
 
+  /**
+   * Comma-separated addresses promoted to `admin` at startup. Promote-only —
+   * these accounts must already exist (see bootstrap.service.js). Safe to leave
+   * set: the promotion is idempotent and never demotes.
+   */
+  adminEmails: (process.env.ADMIN_EMAILS || '')
+    .split(',')
+    .map((s) => s.trim().toLowerCase())
+    .filter(Boolean),
+
   // Whether the refresh cookie requires HTTPS. Defaults to prod behaviour, but
   // can be forced off (e.g. the Docker stack served over plain HTTP on :8080).
   cookieSecure: bool(process.env.COOKIE_SECURE, process.env.NODE_ENV === 'production'),
