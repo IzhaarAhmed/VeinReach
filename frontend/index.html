@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#070b16" />
+    <title>VeinReach — Blood Donation Platform</title>
+
+    <!--
+      Webfonts, loaded WITHOUT blocking the first paint.
+
+      Measured, not assumed: an @import inside index.css cost FCP 2104 ms on a
+      throttled profile, and a plain render-blocking <link> here was worse still
+      at 3264 ms — it moves an external round trip into the critical path. The
+      media="print" swap trick lets the browser fetch the sheet at normal
+      priority while treating it as non-render-blocking, so text paints
+      immediately in the fallback and the webfont swaps in when it lands (which
+      is what `display=swap` already asks for anyway).
+    -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Figtree:wght@300;400;500;600;700;800&family=Instrument+Serif:ital@0;1&family=Manrope:wght@300;400;500;600;700;800&family=Noto+Sans:wght@400;500;600&display=swap"
+      media="print"
+      onload="this.media='all'"
+    />
+    <noscript>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Figtree:wght@300;400;500;600;700;800&family=Instrument+Serif:ital@0;1&family=Manrope:wght@300;400;500;600;700;800&family=Noto+Sans:wght@400;500;600&display=swap"
+      />
+    </noscript>
+    <script>
+      // No-FOUC theme boot: set the <html> class before React/CSS paint so the
+      // first frame already matches the user's saved (or OS) light/dark choice.
+      (function () {
+        try {
+          var t = localStorage.getItem('vr_theme');
+          if (t !== 'light' && t !== 'dark') {
+            t = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+          }
+          document.documentElement.classList.add(t);
+        } catch (e) {
+          document.documentElement.classList.add('dark');
+        }
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>

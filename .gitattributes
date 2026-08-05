@@ -1,0 +1,16 @@
+# Normalise line endings so a repo authored on Windows does not produce
+# whole-file diffs when cloned on Linux/macOS (or in CI).
+* text=auto eol=lf
+
+# Binary assets must never be line-ending converted.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+*.ico binary
+*.pdf binary
+*.woff binary
+*.woff2 binary
+
+# Generated — collapse in diffs and exclude from language stats.
+package-lock.json linguist-generated=true -diff

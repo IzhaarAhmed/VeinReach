@@ -1,0 +1,18 @@
+# VeinReach
+#
+# REPLACE https://YOUR-DOMAIN.example BELOW WITH YOUR REAL DOMAIN.
+
+User-agent: *
+Allow: /
+
+# Authenticated application. A crawler only ever sees a redirect to /login
+# here, so indexing these wastes crawl budget and can surface dead results.
+Disallow: /dashboard
+
+# Only meaningful with a one-time token in the query string.
+Disallow: /verify-email
+
+# Password reset flow — nothing to index, and no reason to advertise it.
+Disallow: /forgot-password
+
+Sitemap: https://YOUR-DOMAIN.example/sitemap.xml

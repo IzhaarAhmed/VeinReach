@@ -1,0 +1,80 @@
+# VeinReach — full local stack: MongoDB, Redis, API, and frontend.
+#
+#   docker compose up --build      # start everything
+#   docker compose up -d --build   # detached
+#   docker compose down            # stop (add -v to wipe data volumes)
+#
+# Override secrets via a root .env file (see .env.example). The defaults below
+# are fine for local development only — never use them in production.
+
+services:
+  mongo:
+    image: mongo:7
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    environment:
+      NODE_ENV: production
+      PORT: 5000
+      # Service names resolve on the compose network.
+      MONGODB_URI: mongodb://mongo:27017/veinreach
+      REDIS_URL: redis://redis:6379
+      # Origin the browser uses to reach the app (frontend nginx port).
+      CLIENT_URL: ${CLIENT_URL:-http://localhost:8080}
+      # Stack is served over plain HTTP locally, so the refresh cookie must not
+      # be Secure-only. Set to true when running behind HTTPS in production.
+      COOKIE_SECURE: ${COOKIE_SECURE:-false}
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:-dev_access_secret_change_me}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-dev_refresh_secret_change_me}
+      JWT_ACCESS_EXPIRES: ${JWT_ACCESS_EXPIRES:-15m}
+      JWT_REFRESH_EXPIRES: ${JWT_REFRESH_EXPIRES:-30d}
+    depends_on:
+      mongo:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        # Same-origin: nginx proxies /api and /socket.io to the backend.
+        VITE_API_URL: /api/v1
+        VITE_SOCKET_URL: ""
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
+
+volumes:
+  mongo_data:
+  redis_data:

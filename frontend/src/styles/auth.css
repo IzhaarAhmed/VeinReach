@@ -1,0 +1,359 @@
+/* ══════════════════════════════════════════════════════════════════════════
+   AUTH — cinematic shell built on the landing page's `lux` tokens.
+
+   The root element carries both `lux` and `lux-auth`, so the colour tokens,
+   buttons, grain and vignette all come straight from landing.css. Only layout
+   and form controls are new here.
+
+   Form controls need their own classes rather than the app's `.input` /
+   `.label`: those are remapped under `html.light` with !important, which would
+   turn the fields near-white on this black panel.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+.lux-auth {
+  display: flex;
+  min-height: 100vh;
+  min-height: 100svh;
+}
+
+.lux-auth__toggle {
+  position: absolute;
+  top: 1.1rem;
+  right: 1.1rem;
+  z-index: 30;
+}
+
+.lux-auth__grid {
+  position: relative;
+  z-index: 3;
+  display: grid;
+  grid-template-columns: 1fr;
+  width: 100%;
+}
+
+@media (min-width: 1024px) {
+  .lux-auth__grid {
+    grid-template-columns: 1.05fr 1fr;
+  }
+}
+
+/* ── Story panel ────────────────────────────────────────────────────────── */
+.lux-auth__story {
+  position: relative;
+  display: none;
+  overflow: hidden;
+  padding: clamp(2.5rem, 4vw, 4rem);
+  border-right: 1px solid rgba(255, 255, 255, 0.07);
+  background:
+    radial-gradient(90% 70% at 18% 28%, rgba(139, 0, 0, 0.34), transparent 68%),
+    radial-gradient(70% 60% at 78% 82%, rgba(193, 18, 31, 0.2), transparent 70%);
+}
+
+@media (min-width: 1024px) {
+  .lux-auth__story {
+    display: flex;
+    align-items: flex-end;
+  }
+}
+
+.lux-auth__veins {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0.85;
+  pointer-events: none;
+}
+
+.lux-auth__story-inner {
+  position: relative;
+  z-index: 1;
+  max-width: 30rem;
+}
+
+.lux-auth__quote {
+  margin-top: 2.5rem;
+  font-size: clamp(2.1rem, 3.2vw, 3.1rem);
+  font-weight: 700;
+  line-height: 1.02;
+  letter-spacing: -0.035em;
+  text-wrap: balance;
+  text-shadow: 0 0 70px rgba(193, 18, 31, 0.35);
+}
+
+.lux-auth__story-body {
+  margin-top: 1.15rem;
+  max-width: 26rem;
+}
+
+.lux-auth__trust {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.4rem;
+  margin-top: 2.25rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 0.8rem;
+  color: var(--lux-faint);
+}
+.lux-auth__trust li {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+.lux-auth__trust svg {
+  color: rgba(255, 107, 107, 0.75);
+}
+
+/* ── Form panel ─────────────────────────────────────────────────────────── */
+.lux-auth__panel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(1.5rem, 5vw, 3.5rem) clamp(1.15rem, 5vw, 3rem);
+}
+
+.lux-auth__card {
+  position: relative;
+  width: 100%;
+  max-width: 25rem;
+}
+.lux-auth__card--wide {
+  max-width: 38rem;
+}
+
+.lux-auth__card-brand {
+  margin-bottom: 2rem;
+}
+@media (min-width: 1024px) {
+  /* The story panel already carries the brand at this width. */
+  .lux-auth__card-brand {
+    display: none;
+  }
+}
+
+/* Hairline above the form with a pulse running along it — a quiet echo of the
+   travelling cells in the story panel. */
+.lux-auth__rail {
+  position: relative;
+  display: block;
+  height: 1px;
+  overflow: hidden;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.14), transparent);
+}
+.lux-auth__rail::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 34%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, var(--lux-red), transparent);
+  animation: lux-rail 4.6s var(--lux-ease) infinite;
+}
+
+.lux-auth__head {
+  margin: 1.75rem 0 1.75rem;
+}
+.lux-auth__title {
+  font-size: clamp(1.7rem, 2.6vw, 2.15rem);
+  font-weight: 700;
+  letter-spacing: -0.035em;
+  line-height: 1.1;
+}
+.lux-kicker + .lux-auth__title {
+  margin-top: 0.6rem;
+}
+.lux-auth__subtitle {
+  margin-top: 0.6rem;
+  font-size: 0.93rem;
+  line-height: 1.6;
+  color: var(--lux-muted);
+}
+
+/* ── Form controls ──────────────────────────────────────────────────────── */
+.lux-field + .lux-field {
+  margin-top: 1.1rem;
+}
+
+.lux-label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.lux-input {
+  display: block;
+  width: 100%;
+  border-radius: 0.85rem;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+  padding: 0.82rem 1rem;
+  font-size: 0.95rem;
+  color: #fff;
+  transition: border-color 0.4s var(--lux-ease), background-color 0.4s var(--lux-ease),
+    box-shadow 0.4s var(--lux-ease);
+}
+.lux-input::placeholder {
+  color: rgba(255, 255, 255, 0.42);
+}
+.lux-input:focus {
+  outline: none;
+  border-color: rgba(193, 18, 31, 0.65);
+  background: rgba(255, 255, 255, 0.065);
+  box-shadow: 0 0 0 3px rgba(193, 18, 31, 0.2);
+}
+/* Chrome paints autofilled fields near-white; the app-wide override uses the
+   slate ink palette, which is off-key here. */
+.lux-input:-webkit-autofill,
+.lux-input:-webkit-autofill:hover,
+.lux-input:-webkit-autofill:focus,
+html.light .lux-input:-webkit-autofill,
+html.light .lux-input:-webkit-autofill:hover,
+html.light .lux-input:-webkit-autofill:focus {
+  -webkit-text-fill-color: #ffffff;
+  -webkit-box-shadow: 0 0 0 1000px #150406 inset;
+  box-shadow: 0 0 0 1000px #150406 inset;
+  caret-color: #ffffff;
+}
+
+.lux-hint {
+  margin-top: 0.55rem;
+  font-size: 0.78rem;
+  color: var(--lux-faint);
+}
+
+.lux-link {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #ff8b8b;
+  transition: color 0.3s var(--lux-ease);
+}
+.lux-link:hover {
+  color: #ffd0d0;
+}
+
+.lux-alert {
+  margin-bottom: 1.25rem;
+  border-radius: 0.85rem;
+  border: 1px solid rgba(193, 18, 31, 0.42);
+  background: rgba(139, 0, 0, 0.22);
+  padding: 0.8rem 0.95rem;
+  font-size: 0.87rem;
+  line-height: 1.5;
+  color: #ffc9c9;
+}
+
+.lux-divider {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  margin: 1.75rem 0 1.1rem;
+  font-size: 0.68rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  /* >= 0.46 alpha to clear WCAG 4.5:1 on #050505 at this size. */
+  color: rgba(255, 255, 255, 0.55);
+}
+.lux-divider::before,
+.lux-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* Full-width buttons inside the auth card. */
+.lux-auth__card .lux-btn {
+  width: 100%;
+}
+
+/* PasswordInput's eye toggle is styled with app utilities that get remapped
+   under html.light / html.high-contrast. Pin it to the dark panel's palette in
+   every theme — the selectors are qualified only to outrank those remaps. */
+.lux button[aria-pressed],
+html.light .lux button[aria-pressed],
+html.high-contrast .lux button[aria-pressed] {
+  color: rgba(255, 255, 255, 0.5) !important;
+}
+.lux button[aria-pressed]:hover,
+html.light .lux button[aria-pressed]:hover,
+html.high-contrast .lux button[aria-pressed]:hover {
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
+@keyframes lux-rail {
+  0% {
+    transform: translateX(-110%);
+  }
+  100% {
+    transform: translateX(400%);
+  }
+}
+
+/* ── Vessel motif ───────────────────────────────────────────────────────── */
+.vein-pulse__flow path {
+  stroke-dasharray: 7 93; /* pathLength=100: a short cell, a long gap */
+  stroke-dashoffset: 100;
+  animation-name: vein-travel;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  filter: drop-shadow(0 0 5px rgba(193, 18, 31, 0.9));
+}
+.vein-pulse__core {
+  filter: drop-shadow(0 0 8px rgba(255, 107, 107, 0.95));
+  animation: vein-core 3.4s ease-in-out infinite;
+}
+
+@keyframes vein-travel {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes vein-core {
+  0%,
+  100% {
+    opacity: 0.55;
+    r: 3.4;
+  }
+  50% {
+    opacity: 1;
+    r: 4.6;
+  }
+}
+
+/* ── High contrast ──────────────────────────────────────────────────────── */
+html.high-contrast .lux-auth__subtitle,
+html.high-contrast .lux-auth .lux-lede,
+html.high-contrast .lux-auth__trust,
+html.high-contrast .lux-hint {
+  color: rgba(255, 255, 255, 0.94);
+}
+html.high-contrast .lux-input {
+  border-color: rgba(255, 255, 255, 0.5);
+  background: rgba(0, 0, 0, 0.55);
+}
+html.high-contrast .lux-label {
+  color: rgba(255, 255, 255, 0.94);
+}
+html.high-contrast .lux-auth__story {
+  border-right-color: rgba(255, 255, 255, 0.45);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lux-auth__rail::after,
+  .vein-pulse__flow path,
+  .vein-pulse__core {
+    animation: none;
+  }
+  /* Without the travelling dash the vessels would read as dotted lines. */
+  .vein-pulse__flow path {
+    stroke-dasharray: none;
+    stroke-dashoffset: 0;
+    opacity: 0.5;
+  }
+}

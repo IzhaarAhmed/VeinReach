@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  VeinReach sitemap.
+
+  REPLACE https://YOUR-DOMAIN.example WITH YOUR REAL DOMAIN before submitting
+  this to Search Console — a sitemap listing URLs on a domain you do not own is
+  worse than no sitemap at all.
+
+  Only genuinely public, indexable routes belong here. Everything under
+  /dashboard is behind ProtectedRoute and would render as a redirect to the
+  login page for a crawler, and /verify-email is meaningless without the
+  one-time token in its query string. Both are excluded here and disallowed in
+  robots.txt.
+-->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://YOUR-DOMAIN.example/</loc>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://YOUR-DOMAIN.example/register</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://YOUR-DOMAIN.example/login</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+</urlset>

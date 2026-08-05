@@ -1,0 +1,16 @@
+node_modules
+npm-debug.log
+.env
+.env.*
+!.env.example
+*firebase*service*account*.json
+*serviceAccountKey*.json
+tests
+test-results.txt
+_diag.txt
+coverage
+.git
+.gitignore
+Dockerfile
+.dockerignore
+README.md

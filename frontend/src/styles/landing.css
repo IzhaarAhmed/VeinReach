@@ -1,0 +1,492 @@
+/* ══════════════════════════════════════════════════════════════════════════
+   LANDING PAGE — "lux" cinematic surface
+   Deliberately self-contained. The app is authored dark-first with white/ink
+   utilities that get remapped under `html.light` / `html.high-contrast` using
+   !important; if the landing were built from those utilities the cinematic
+   palette would shatter the moment someone flipped the theme. So it carries
+   its own tokens and component classes and renders identically in every mode.
+
+   Loaded from main.jsx *after* index.css so it always wins on source order.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+.lux {
+  --lux-bg: #050505;
+  --lux-deep: #4a0000;
+  --lux-blood: #8b0000;
+  --lux-red: #c1121f;
+  --lux-text: #ffffff;
+  /* Alphas are not eyeballed: white-over-#050505 needs >= 0.46 to clear WCAG
+     4.5:1 at these text sizes. muted = 6.9:1, faint = 5.7:1. */
+  --lux-muted: rgba(255, 255, 255, 0.58);
+  --lux-faint: rgba(255, 255, 255, 0.52);
+  --lux-line: rgba(255, 255, 255, 0.09);
+  --lux-ease: cubic-bezier(0.16, 1, 0.3, 1);
+
+  position: relative;
+  min-height: 100vh;
+  overflow-x: hidden;
+  background: var(--lux-bg);
+  color: var(--lux-text);
+  font-family: 'Manrope', 'Figtree', ui-sans-serif, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Keep the document background matched so overscroll never flashes the app
+   canvas colour behind the black page. */
+html.lux-root,
+html.lux-root body {
+  background: #050505;
+}
+
+/* ── Layers ─────────────────────────────────────────────────────────────── */
+.lux-scene {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  will-change: opacity;
+}
+.lux-scene canvas {
+  display: block;
+}
+
+/* Deep crimson floor + vignette, so the 3D never meets a hard black edge. */
+.lux-vignette {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background:
+    radial-gradient(120% 80% at 50% 55%, rgba(139, 0, 0, 0.16), transparent 62%),
+    radial-gradient(100% 100% at 50% 50%, transparent 42%, rgba(5, 5, 5, 0.82) 100%);
+}
+
+/* Film grain — stops large flat gradients from banding on wide displays. */
+.lux-grain {
+  position: fixed;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  opacity: 0.032;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+.lux-content {
+  position: relative;
+  z-index: 3;
+}
+
+/* ── Navigation ─────────────────────────────────────────────────────────── */
+.lux-nav {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.6rem clamp(1.25rem, 4vw, 3rem);
+}
+.lux-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.7rem;
+  font-weight: 700;
+  font-size: 1.05rem;
+  letter-spacing: -0.02em;
+  color: var(--lux-text);
+}
+.lux-brand-mark {
+  display: grid;
+  place-items: center;
+  width: 2.15rem;
+  height: 2.15rem;
+  border-radius: 0.75rem;
+  background: linear-gradient(135deg, var(--lux-red), var(--lux-deep));
+  box-shadow: 0 8px 26px -8px rgba(193, 18, 31, 0.85), inset 0 1px 0 rgba(255, 255, 255, 0.22);
+}
+.lux-navlink {
+  padding: 0.55rem 0.9rem;
+  border-radius: 999px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.72);
+  transition: color 0.4s var(--lux-ease), background-color 0.4s var(--lux-ease);
+}
+.lux-navlink:hover {
+  color: var(--lux-text);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+/* ── Typography ─────────────────────────────────────────────────────────── */
+.lux-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.45rem 0.95rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.035);
+  backdrop-filter: blur(12px);
+  font-size: 0.74rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.72);
+}
+.lux-eyebrow-dot {
+  width: 0.42rem;
+  height: 0.42rem;
+  border-radius: 999px;
+  background: var(--lux-red);
+  box-shadow: 0 0 12px 2px rgba(193, 18, 31, 0.8);
+  animation: lux-breathe 2.6s ease-in-out infinite;
+}
+
+.lux-display {
+  font-size: clamp(2.6rem, 7.2vw, 5.5rem);
+  line-height: 0.99;
+  letter-spacing: -0.038em;
+  font-weight: 700;
+  text-wrap: balance;
+  text-shadow: 0 0 80px rgba(193, 18, 31, 0.3);
+}
+/**
+ * The emotional half of the headline, set against the geometric sans of the
+ * line above it. A high-contrast italic serif carries the human register the
+ * sans deliberately does not — the contrast between the two faces is the point,
+ * so they must never be collapsed into one family.
+ *
+ * Serif hairlines are far thinner than Manrope's stems, so this needs its own
+ * optical treatment: slightly larger, looser tracking (the tight negative
+ * tracking that flatters the sans crushes serifs), and a gradient that stays
+ * bright end-to-end rather than falling off into a near-black stop.
+ */
+.lux-display-accent {
+  display: block;
+  font-family: 'Instrument Serif', ui-serif, Georgia, 'Times New Roman', serif;
+  font-style: italic;
+  font-weight: 400;
+  font-size: 1.08em;
+  letter-spacing: -0.012em;
+  padding-bottom: 0.06em; /* room for the descender on the italic 'f' */
+  background: linear-gradient(100deg, #ffffff 0%, #ffc2c2 30%, #ff7a7a 60%, var(--lux-red) 100%);
+  background-size: 220% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: lux-shimmer 9s linear infinite;
+}
+
+.lux-h2 {
+  font-size: clamp(1.9rem, 3.9vw, 3rem);
+  line-height: 1.07;
+  letter-spacing: -0.032em;
+  font-weight: 700;
+  text-wrap: balance;
+}
+.lux-lede {
+  font-size: clamp(1rem, 1.35vw, 1.15rem);
+  line-height: 1.65;
+  color: var(--lux-muted);
+  text-wrap: pretty;
+}
+.lux-kicker {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+/* ── Buttons ────────────────────────────────────────────────────────────── */
+.lux-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  overflow: hidden;
+  border-radius: 999px;
+  padding: 0.95rem 1.9rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  transition: transform 0.55s var(--lux-ease), box-shadow 0.55s var(--lux-ease),
+    background-color 0.55s var(--lux-ease), border-color 0.55s var(--lux-ease);
+  will-change: transform;
+}
+.lux-btn::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(110deg, transparent 32%, rgba(255, 255, 255, 0.26) 50%, transparent 68%);
+  transform: translateX(-130%);
+  transition: transform 0.9s var(--lux-ease);
+  pointer-events: none;
+}
+.lux-btn:hover::after {
+  transform: translateX(130%);
+}
+.lux-btn--primary {
+  color: #fff;
+  background: linear-gradient(135deg, #d81424 0%, var(--lux-blood) 58%, var(--lux-deep) 100%);
+  box-shadow: 0 14px 44px -14px rgba(193, 18, 31, 0.9), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+.lux-btn--primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 24px 64px -16px rgba(193, 18, 31, 1), inset 0 1px 0 rgba(255, 255, 255, 0.28);
+}
+.lux-btn--ghost {
+  color: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.035);
+  backdrop-filter: blur(12px);
+}
+.lux-btn--ghost:hover {
+  transform: translateY(-2px);
+  border-color: rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.075);
+}
+.lux-btn--sm {
+  padding: 0.6rem 1.25rem;
+  font-size: 0.88rem;
+}
+.lux-btn__icon {
+  transition: transform 0.55s var(--lux-ease);
+}
+.lux-btn:hover .lux-btn__icon {
+  transform: translateX(3px);
+}
+
+/* ── Glass cards ────────────────────────────────────────────────────────── */
+.lux-card {
+  position: relative;
+  height: 100%;
+  border-radius: 1.25rem;
+  border: 1px solid var(--lux-line);
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.012));
+  /* Kept modest: backdrop-filter re-samples the animating canvas underneath on
+     every frame, and it is by far the most expensive thing on this page. */
+  backdrop-filter: blur(12px) saturate(125%);
+  padding: clamp(1.5rem, 2.4vw, 2rem);
+  transition: transform 0.65s var(--lux-ease), border-color 0.65s var(--lux-ease),
+    box-shadow 0.65s var(--lux-ease);
+  will-change: transform;
+}
+/* Soft crimson border glow, revealed on hover. */
+.lux-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(140deg, rgba(193, 18, 31, 0.75), transparent 42%, transparent 58%, rgba(139, 0, 0, 0.5));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0;
+  transition: opacity 0.65s var(--lux-ease);
+  pointer-events: none;
+}
+.lux-card:hover {
+  transform: translateY(-6px);
+  border-color: rgba(255, 255, 255, 0.16);
+  box-shadow: 0 34px 80px -34px rgba(193, 18, 31, 0.6), 0 2px 10px -4px rgba(0, 0, 0, 0.7);
+}
+.lux-card:hover::before {
+  opacity: 1;
+}
+.lux-card__icon {
+  display: grid;
+  place-items: center;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 0.9rem;
+  color: #ff8b8b;
+  border: 1px solid rgba(193, 18, 31, 0.32);
+  background: radial-gradient(120% 120% at 30% 20%, rgba(193, 18, 31, 0.34), rgba(74, 0, 0, 0.22));
+  transition: transform 0.65s var(--lux-ease), box-shadow 0.65s var(--lux-ease),
+    color 0.65s var(--lux-ease);
+}
+.lux-card:hover .lux-card__icon {
+  transform: translateY(-3px) scale(1.07);
+  color: #ffd0d0;
+  box-shadow: 0 0 34px -6px rgba(193, 18, 31, 0.85);
+}
+.lux-card__title {
+  margin-top: 1.15rem;
+  font-size: 1.12rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+.lux-card__body {
+  margin-top: 0.6rem;
+  font-size: 0.94rem;
+  line-height: 1.65;
+  color: var(--lux-muted);
+}
+.lux-card__step {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.28em;
+  color: rgba(255, 107, 107, 0.9);
+}
+
+/* ── Stats ──────────────────────────────────────────────────────────────── */
+.lux-stat__value {
+  font-size: clamp(2.3rem, 4.6vw, 3.5rem);
+  font-weight: 700;
+  letter-spacing: -0.045em;
+  line-height: 1;
+  background: linear-gradient(180deg, #ffffff 12%, #ff6b6b 118%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.lux-stat__label {
+  margin-top: 0.7rem;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: var(--lux-muted);
+}
+
+/* ── Testimonials ───────────────────────────────────────────────────────── */
+.lux-quote {
+  font-size: 1rem;
+  line-height: 1.72;
+  color: rgba(255, 255, 255, 0.82);
+  text-wrap: pretty;
+}
+.lux-quote__mark {
+  display: block;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 3.2rem;
+  line-height: 0.7;
+  color: rgba(193, 18, 31, 0.55);
+}
+.lux-quote__who {
+  margin-top: 1.35rem;
+  font-size: 0.86rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.lux-quote__role {
+  font-size: 0.8rem;
+  color: var(--lux-faint);
+}
+
+/* ── Structure ──────────────────────────────────────────────────────────── */
+.lux-rule {
+  height: 1px;
+  border: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.14), transparent);
+}
+.lux-section {
+  position: relative;
+  padding: clamp(5rem, 11vw, 9rem) clamp(1.25rem, 4vw, 3rem);
+}
+.lux-shell {
+  margin-inline: auto;
+  width: 100%;
+  max-width: 72rem;
+}
+.lux-footer {
+  padding: 3.5rem clamp(1.25rem, 4vw, 3rem) 3rem;
+  color: var(--lux-faint);
+  font-size: 0.87rem;
+}
+
+/* Scroll cue */
+.lux-cue {
+  display: grid;
+  place-items: center;
+  gap: 0.6rem;
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 0.66rem;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+}
+.lux-cue__rail {
+  position: relative;
+  width: 1px;
+  height: 3rem;
+  overflow: hidden;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.3), transparent);
+}
+.lux-cue__rail::after {
+  content: '';
+  position: absolute;
+  inset-inline: 0;
+  height: 45%;
+  background: linear-gradient(180deg, transparent, var(--lux-red));
+  animation: lux-trickle 2.4s var(--lux-ease) infinite;
+}
+
+/* Focus ring: the app-wide teal is off-palette here, and white reads far
+   above 3:1 against the black canvas. */
+.lux :focus-visible {
+  outline: 2px solid #ffffff;
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+
+/* ── Motion ─────────────────────────────────────────────────────────────── */
+@keyframes lux-shimmer {
+  to {
+    background-position: 220% center;
+  }
+}
+@keyframes lux-breathe {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.45;
+    transform: scale(0.82);
+  }
+}
+@keyframes lux-trickle {
+  0% {
+    transform: translateY(-120%);
+  }
+  100% {
+    transform: translateY(320%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lux-eyebrow-dot,
+  .lux-cue__rail::after,
+  .lux-display-accent {
+    animation: none;
+  }
+  .lux-card:hover,
+  .lux-btn:hover {
+    transform: none;
+  }
+}
+
+/* backdrop-filter is a real cost on low-end mobile GPUs; drop it there and
+   lean on a solid tint instead. */
+@media (max-width: 640px) {
+  .lux-card,
+  .lux-eyebrow,
+  .lux-btn--ghost {
+    backdrop-filter: none;
+  }
+  .lux-card {
+    background: rgba(255, 255, 255, 0.045);
+  }
+  /* A full-screen blend layer over a live canvas costs a recomposite every
+     frame — not worth it on a phone. */
+  .lux-grain {
+    display: none;
+  }
+}
