@@ -7,7 +7,7 @@ Blood Donation & Emergency Blood Request Platform — connecting donors, recipie
 ## Monorepo Layout
 
 ```
-ByBlood/
+VeinReach/
 ├── backend/            Node.js + Express + Socket.io + MongoDB API (REST /api/v1)
 ├── frontend/           React + Vite + Tailwind + TanStack Query SPA
 ├── CLAUDE.md           Product specification
