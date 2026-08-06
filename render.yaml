@@ -1,0 +1,103 @@
+# Render Blueprint — VeinReach API.
+#
+# Render reads this on "New → Blueprint" and provisions the service below.
+# Only the backend lives here; the frontend is a static build on Cloudflare
+# Pages. See DEPLOY.md for the full walkthrough.
+#
+# Secrets are NOT in this file. Anything marked `sync: false` is left blank for
+# you to paste into the Render dashboard, so this stays safe to commit.
+
+services:
+  - type: web
+    name: veinreach-api
+    runtime: docker
+    # Free plan sleeps after ~15 min idle. That stops the escalation worker and
+    # drops live sockets until the next request wakes it. Upgrade to `starter`
+    # when real users depend on it — that is the only change needed.
+    plan: free
+    # Closest free region to South Asia. Also available: oregon, ohio,
+    # virginia, frankfurt.
+    region: singapore
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    healthCheckPath: /api/v1/health
+    autoDeploy: true
+
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 5000
+
+      # Forces the refresh + CSRF cookies to Secure/SameSite=None, which they
+      # must be: the SPA on *.pages.dev is a different site from the API on
+      # *.onrender.com, so a Lax cookie would never be sent and login would
+      # appear to succeed and then immediately log out.
+      - key: COOKIE_SECURE
+        value: true
+
+      # Your Cloudflare Pages origin, no trailing slash, e.g.
+      #   https://veinreach.pages.dev
+      # Comma-separate to allow more than one. Set after the first Pages deploy.
+      - key: CLIENT_URL
+        sync: false
+
+      # Atlas SRV string. Atlas → Network Access must allow 0.0.0.0/0, because
+      # Render's free plan has no static outbound IP to allowlist.
+      - key: MONGODB_URI
+        sync: false
+
+      # Comma-separated. The first account to register with a listed address is
+      # bootstrapped to admin (see the "Add first-admin bootstrap" commit).
+      - key: ADMIN_EMAILS
+        sync: false
+
+      # Render generates strong random values on first deploy. Never reuse the
+      # dev_*_change_me placeholders from .env.example in production.
+      - key: JWT_ACCESS_SECRET
+        generateValue: true
+      - key: JWT_REFRESH_SECRET
+        generateValue: true
+      - key: JWT_ACCESS_EXPIRES
+        value: 15m
+      - key: JWT_REFRESH_EXPIRES
+        value: 30d
+
+      # ── Optional integrations ──────────────────────────────────────────
+      # Every block below degrades gracefully when unset. Leave them blank for
+      # the first deploy and fill them in once the core app is up.
+
+      # Redis: unset → config/redis.js falls back to a no-op stub. Rate limits
+      # and presence counts become per-instance instead of shared. Fine on a
+      # single free dyno. Upstash gives a free redis:// URL when you want it.
+      - key: REDIS_URL
+        sync: false
+
+      # Cloudflare R2 — avatar/document uploads. Unset → uploads are disabled.
+      - key: R2_ACCOUNT_ID
+        sync: false
+      - key: R2_ACCESS_KEY_ID
+        sync: false
+      - key: R2_SECRET_ACCESS_KEY
+        sync: false
+      - key: R2_BUCKET
+        sync: false
+      - key: R2_PUBLIC_URL
+        sync: false
+
+      # SMTP — verification and notification mail. Unset → mail is skipped.
+      - key: SMTP_HOST
+        sync: false
+      - key: SMTP_PORT
+        sync: false
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASS
+        sync: false
+      - key: MAIL_FROM
+        sync: false
+
+      # Firebase Admin service account JSON, pasted as a single line, for web
+      # push. Unset → push notifications are silently disabled.
+      - key: FCM_SERVICE_ACCOUNT
+        sync: false
