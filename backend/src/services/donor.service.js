@@ -50,7 +50,7 @@ export async function searchDonors({ bloodGroup, lng, lat, radiusKm = 10, limit 
     return b.reputationScore - a.reputationScore; // 3. reputation
   });
 
-  // eslint-disable-next-line no-unused-vars
+  // Strip the internal sort key; it must never reach the client.
   return enriched.map(({ _rank, ...rest }) => rest);
 }
 

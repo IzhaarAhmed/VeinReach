@@ -1,0 +1,65 @@
+# Test gate for VeinReach.
+#
+# render.yaml sets `autoDeploy: true`, so a push to main ships to production.
+# This runs the suites that previously only ran locally. Render does not wait on
+# it — to make it a real gate, enable branch protection on `main` requiring
+# "backend" and "frontend" to pass, so unreviewed pushes cannot reach main.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          # Matches the Dockerfile's node:22-alpine runtime.
+          node-version: 22
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+
+      # `npm ci` (not `npm install`) so a lockfile that drifts out of sync fails
+      # here loudly. The Dockerfile falls back to `npm install`, which means a
+      # stale lockfile would otherwise deploy unnoticed.
+      - run: npm ci
+      - run: npm run lint
+      - run: npm test
+
+      # The image build is the actual deploy path, so a broken Dockerfile should
+      # fail CI rather than fail on Render.
+      - name: Build production image
+        run: docker build -f Dockerfile -t veinreach-api:ci .
+
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - run: npm ci
+      - run: npm run lint
+      - run: npm test
+
+      # Cloudflare Pages runs exactly this. The real VITE_API_URL / VITE_SOCKET_URL
+      # live in the Pages dashboard, so CI opts out of the vite.config.js guard
+      # that would otherwise (correctly) refuse to build without them — here we
+      # only care that the bundle compiles.
+      - run: npm run build
+        env:
+          VEINREACH_ALLOW_LOCAL_BUILD: '1'

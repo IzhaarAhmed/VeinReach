@@ -81,6 +81,23 @@ VITE_SOCKET_URL=https://veinreach-api.onrender.com
 > read at runtime, so changing one later requires a redeploy, and none of them
 > may hold a secret — assume anything prefixed `VITE_` is public.
 
+Both are **required**, and the build enforces it. `frontend/vite.config.js`
+refuses to produce a production bundle when either is missing, points at
+localhost, or isn't a valid `http(s)` URL. It also warns if the two are swapped —
+`VITE_API_URL` ends in `/api/v1`, `VITE_SOCKET_URL` is the bare origin.
+
+Without that guard a forgotten variable is genuinely nasty to diagnose: the
+bundle falls back to `http://localhost:5000` (`src/lib/api.js:3`,
+`src/lib/socket.js:4`), so the site deploys, loads and looks fine, and then every
+request fails — blocked as mixed content on an HTTPS page before it is even sent,
+which leaves nothing useful in the network tab.
+
+To build with no real API behind it (CI, or a local production smoke test):
+
+```bash
+VEINREACH_ALLOW_LOCAL_BUILD=1 npm run build
+```
+
 If you want web push, also copy the seven `VITE_FIREBASE_*` values from your
 local `frontend/.env`. Skip them and push is silently disabled; nothing else
 breaks.

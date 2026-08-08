@@ -7,8 +7,11 @@ export function notFound(req, _res, next) {
   next(ApiError.notFound(`Route not found: ${req.method} ${req.originalUrl}`));
 }
 
-/** Centralized error handler — formats every error into the response envelope. */
-// eslint-disable-next-line no-unused-vars
+/**
+ * Centralized error handler — formats every error into the response envelope.
+ * The unused `_next` is required: Express only treats a 4-arity function as an
+ * error handler, so dropping it would silently turn this into normal middleware.
+ */
 export function errorHandler(err, _req, res, _next) {
   let status = err.statusCode || 500;
   let message = err.message || 'Internal server error';
