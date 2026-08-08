@@ -28,7 +28,7 @@ export async function createReport(reporterId, input) {
     if (!targetUserId) throw ApiError.badRequest('targetUserId is required for a user report');
     if (String(targetUserId) === String(reporterId))
       throw ApiError.badRequest('You cannot report yourself');
-    const target = await User.findById(targetUserId).select('_id');
+    const target = await User.findActiveById(targetUserId).select('_id');
     if (!target) throw ApiError.notFound('Reported user not found');
     doc.targetUser = targetUserId;
   } else {

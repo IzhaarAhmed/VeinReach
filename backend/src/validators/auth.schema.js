@@ -21,6 +21,16 @@ export const registerSchema = z.object({
   location: z
     .object({ type: z.literal('Point').optional(), coordinates })
     .optional(),
+
+  /**
+   * Explicit consent to the privacy policy. Required, and required to be `true`
+   * rather than merely present — the platform collects health data (blood group)
+   * and precise location, so consent has to be an affirmative act (DPDP §6,
+   * GDPR Art. 7). The accepted policy version is recorded on the account.
+   */
+  acceptPrivacy: z.literal(true, {
+    errorMap: () => ({ message: 'You must accept the privacy policy to register' }),
+  }),
 });
 
 export const loginSchema = z.object({

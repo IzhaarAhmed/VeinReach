@@ -9,7 +9,10 @@ import { logger } from '../utils/logger.js';
 /** Paginated, filterable user directory for the admin console. */
 export async function listUsers(query = {}) {
   const { page, limit, skip } = paginate(query);
-  const filter = {};
+  // Closed accounts are anonymized tombstones with nothing left to moderate, so
+  // they stay out of the directory. `null` also matches accounts predating the
+  // field, so this needs no backfill.
+  const filter = { deletedAt: null };
   if (query.role && USER_ROLES.includes(query.role)) filter.role = query.role;
   if (query.status === 'suspended') filter.isSuspended = true;
   if (query.status === 'active') filter.isSuspended = false;

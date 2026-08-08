@@ -20,6 +20,9 @@ export default function Register() {
     bloodGroup: 'O+', gender: 'male', dateOfBirth: '', weight: '',
     city: '', state: '', emergencyContact: '', role: 'donor',
   });
+  // Consent is tracked separately from the profile fields: it is not profile
+  // data, and it must start false so registering is an affirmative act.
+  const [acceptPrivacy, setAcceptPrivacy] = useState(false);
 
   const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }));
 
@@ -31,6 +34,7 @@ export default function Register() {
       await register({
         ...form,
         weight: Number(form.weight),
+        acceptPrivacy,
         // Optionally attach geolocation later; backend accepts location.coordinates.
       });
       navigate('/dashboard', { replace: true });
@@ -81,8 +85,36 @@ export default function Register() {
           </select>
         </Field>
 
+        {/* Unticked by default and never pre-checked: consent to health-data
+            processing has to be an affirmative act, and the backend rejects a
+            registration whose acceptPrivacy is anything but literal true. */}
         <div className="sm:col-span-2">
-          <button type="submit" className="btn-primary w-full" disabled={busy}>
+          <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-white/10 bg-white/[0.03] p-3.5">
+            <input
+              type="checkbox"
+              required
+              checked={acceptPrivacy}
+              onChange={(e) => setAcceptPrivacy(e.target.checked)}
+              className="mt-0.5 h-4 w-4 shrink-0 rounded border-white/20 bg-white/10 accent-brand-500"
+            />
+            <span className="text-sm leading-relaxed text-white/65">
+              I have read and accept the{' '}
+              <Link
+                to="/privacy"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-medium text-brand-400 underline decoration-brand-500/40 underline-offset-2 hover:text-brand-300"
+              >
+                Privacy Policy
+              </Link>
+              . I understand VeinReach stores my blood group and location to match me with
+              nearby requests, and that I can download or erase my data at any time.
+            </span>
+          </label>
+        </div>
+
+        <div className="sm:col-span-2">
+          <button type="submit" className="btn-primary w-full" disabled={busy || !acceptPrivacy}>
             {busy ? 'Creating account…' : 'Create account'}
           </button>
         </div>

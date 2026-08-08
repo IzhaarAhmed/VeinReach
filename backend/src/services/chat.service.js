@@ -38,7 +38,7 @@ export async function getOrCreateConversation(userId, peerId, { requestId } = {}
   if (String(userId) === String(peerId))
     throw ApiError.badRequest('You cannot start a conversation with yourself');
 
-  const peer = await User.findById(peerId).select('_id fullName role avatar');
+  const peer = await User.findActiveById(peerId).select('_id fullName role avatar');
   if (!peer) throw ApiError.notFound('User not found');
 
   let unlocked = false;
@@ -215,7 +215,7 @@ export async function getContact(userId, conversationId) {
     });
 
   const peerId = peerOf(conversation, userId);
-  const peer = await User.findById(peerId).select('fullName mobile email emergencyContact');
+  const peer = await User.findActiveById(peerId).select('fullName mobile email emergencyContact');
   if (!peer) throw ApiError.notFound('User not found');
   return {
     fullName: peer.fullName,

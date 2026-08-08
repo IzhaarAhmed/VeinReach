@@ -20,6 +20,7 @@ import BloodBanks from './pages/BloodBanks.jsx';
 import AdminDashboard from './pages/AdminDashboard.jsx';
 import BloodBankPortal from './pages/BloodBankPortal.jsx';
 import HospitalPortal from './pages/HospitalPortal.jsx';
+import Privacy from './pages/Privacy.jsx';
 import NotFound from './pages/NotFound.jsx';
 
 /* The landing page carries the 3D scene and framer-motion. Splitting it out
@@ -44,6 +45,8 @@ export default function App() {
       <Route path="/register" element={<Register />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/verify-email" element={<VerifyEmail />} />
+      {/* Public by necessity: registration asks you to accept it. */}
+      <Route path="/privacy" element={<Privacy />} />
 
       {/* Authenticated app */}
       <Route

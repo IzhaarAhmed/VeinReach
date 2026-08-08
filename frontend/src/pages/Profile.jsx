@@ -1,10 +1,12 @@
 import { useRef, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useMutation } from '@tanstack/react-query';
-import { Droplet, CheckCircle2, FileText } from 'lucide-react';
-import { api, unwrap } from '../lib/api.js';
+import { Droplet, CheckCircle2, FileText, Download, ShieldCheck, TriangleAlert } from 'lucide-react';
+import { api, unwrap, friendlyError } from '../lib/api.js';
 import { uploadFile } from '../lib/upload.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import BadgeShelf from '../components/BadgeShelf.jsx';
+import PasswordInput from '../components/PasswordInput.jsx';
 
 const ORG_ROLES = ['hospital', 'bloodbank'];
 const DOC_TYPES = [
@@ -28,6 +30,7 @@ export default function Profile() {
       <VerificationCard user={user} />
       <DetailsCard user={user} />
       <DocumentsCard user={user} />
+      <PrivacyCard />
     </div>
   );
 }
@@ -204,6 +207,161 @@ function Field({ label, type = 'text', ...props }) {
       <span className="label">{label}</span>
       <input className="input" type={type} {...props} />
     </label>
+  );
+}
+
+/* ── Your data: export + close account ──────────────────────────────────── */
+
+/**
+ * The two data-subject rights, self-service (DPDP §11 and §12). Both take
+ * effect immediately — nobody should have to email support to leave.
+ */
+function PrivacyCard() {
+  const { logout } = useAuth();
+  const navigate = useNavigate();
+  const [msg, setMsg] = useState('');
+  const [confirming, setConfirming] = useState(false);
+  const [password, setPassword] = useState('');
+  const [confirm, setConfirm] = useState('');
+
+  const exportData = useMutation({
+    // The endpoint needs an Authorization header, so a plain link cannot fetch
+    // it — pull the blob, then hand it to the browser as a download.
+    mutationFn: async () => {
+      const res = await api.get('/users/me/export', { responseType: 'blob' });
+      const url = URL.createObjectURL(res.data);
+      try {
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `veinreach-data-${new Date().toISOString().slice(0, 10)}.json`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+      } finally {
+        URL.revokeObjectURL(url);
+      }
+    },
+    onSuccess: () => setMsg('Your data file has been downloaded.'),
+    onError: (e) => setMsg(friendlyError(e, 'Could not prepare your data')),
+  });
+
+  const closeAccount = useMutation({
+    mutationFn: () => unwrap(api.delete('/users/me', { data: { password, confirm } })),
+    onSuccess: async () => {
+      // The server already cleared the refresh cookie; this clears the in-memory
+      // access token and the cached user so nothing keeps rendering as signed in.
+      await logout();
+      navigate('/', { replace: true });
+    },
+    onError: (e) => setMsg(friendlyError(e, 'Could not close your account')),
+  });
+
+  return (
+    <div className="card space-y-5">
+      <div className="flex items-start gap-3">
+        <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-brand-400" aria-hidden />
+        <div>
+          <div className="font-semibold">Your data</div>
+          <p className="text-sm text-white/50">
+            Take a copy of everything we hold, or close your account and have it erased. See the{' '}
+            <Link to="/privacy" className="text-brand-400 underline underline-offset-2 hover:text-brand-300">
+              privacy policy
+            </Link>{' '}
+            for exactly what each one does.
+          </p>
+        </div>
+      </div>
+
+      <div className="flex flex-wrap items-center gap-3 border-t border-white/10 pt-4">
+        <button className="btn-ghost" disabled={exportData.isPending} onClick={() => exportData.mutate()}>
+          <Download className="h-4 w-4" aria-hidden />
+          {exportData.isPending ? 'Preparing…' : 'Download my data'}
+        </button>
+        <span className="text-xs text-white/40">A JSON file, generated on the spot.</span>
+      </div>
+
+      <div className="border-t border-white/10 pt-4">
+        {!confirming ? (
+          <div className="flex flex-wrap items-center gap-3">
+            <button
+              className="btn-ghost border-brand-500/40 text-brand-300 hover:border-brand-500/60"
+              onClick={() => {
+                setMsg('');
+                setConfirming(true);
+              }}
+            >
+              Close my account
+            </button>
+            <span className="text-xs text-white/40">This cannot be undone.</span>
+          </div>
+        ) : (
+          <div className="space-y-4 rounded-xl border border-brand-500/30 bg-brand-600/10 p-4">
+            <div className="flex items-start gap-2.5">
+              <TriangleAlert className="mt-0.5 h-4 w-4 shrink-0 text-brand-300" aria-hidden />
+              <div className="text-sm text-white/75">
+                <p className="font-semibold text-brand-200">This erases your personal data immediately.</p>
+                <p className="mt-1.5 leading-relaxed">
+                  Your name, contact details, location, photos and documents are deleted, along with
+                  your chats — which also removes them for the people you were talking to. Your
+                  donations stay on record as anonymous, so recipients and hospitals keep their own
+                  history. Download your data first if you want a copy.
+                </p>
+              </div>
+            </div>
+
+            <label className="block">
+              <span className="label">Confirm your password</span>
+              <PasswordInput
+                autoComplete="current-password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+            </label>
+
+            <label className="block">
+              <span className="label">
+                Type <span className="font-mono text-brand-300">DELETE</span> to confirm
+              </span>
+              <input
+                className="input"
+                value={confirm}
+                onChange={(e) => setConfirm(e.target.value)}
+                placeholder="DELETE"
+                autoComplete="off"
+              />
+            </label>
+
+            <div className="flex flex-wrap gap-3">
+              <button
+                className="btn-primary"
+                disabled={closeAccount.isPending || !password || confirm !== 'DELETE'}
+                onClick={() => closeAccount.mutate()}
+              >
+                {closeAccount.isPending ? 'Closing…' : 'Permanently close my account'}
+              </button>
+              <button
+                className="btn-ghost"
+                disabled={closeAccount.isPending}
+                onClick={() => {
+                  setConfirming(false);
+                  setPassword('');
+                  setConfirm('');
+                  setMsg('');
+                }}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {msg && (
+        <p role="status" className="text-xs text-brand-300">
+          {msg}
+        </p>
+      )}
+    </div>
   );
 }
 

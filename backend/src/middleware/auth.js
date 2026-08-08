@@ -42,9 +42,13 @@ export async function requireVerifiedEmail(req, _res, next) {
   try {
     if (!req.user) return next(ApiError.unauthorized());
     const user = await User.findById(req.user.id).select(
-      'verification.emailVerified isSuspended'
+      'verification.emailVerified isSuspended deletedAt'
     );
     if (!user) return next(ApiError.unauthorized('User no longer exists'));
+    // Closing an account revokes its refresh tokens but cannot reach an access
+    // token already issued, so it stays valid for up to 15 minutes. Same window
+    // as suspension below, and free to close here on the query we already make.
+    if (user.deletedAt) return next(ApiError.unauthorized('This account has been closed'));
     if (user.isSuspended) return next(ApiError.forbidden('Account suspended'));
     if (!user.verification?.emailVerified)
       return next(

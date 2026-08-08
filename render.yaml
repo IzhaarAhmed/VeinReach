@@ -101,3 +101,28 @@ services:
       # push. Unset → push notifications are silently disabled.
       - key: FCM_SERVICE_ACCOUNT
         sync: false
+
+      # ── Privacy ────────────────────────────────────────────────────────
+      # Grievance Officer address published in the privacy policy (DPDP §13).
+      # Set the SPA's VITE_PRIVACY_CONTACT in Cloudflare Pages to the same
+      # address — that is the one the policy page renders.
+      - key: PRIVACY_CONTACT
+        sync: false
+
+      # Data retention, in days, enforced by the retention worker. These
+      # defaults are what the published policy states, so they are pinned here
+      # rather than left implicit — change them and change the policy text too.
+      # NOTE: on `plan: free` the container sleeps, so the sweep only runs while
+      # the API is awake. A keep-alive ping is what makes retention reliable.
+      - key: RETENTION_ENABLED
+        value: true
+      - key: RETENTION_MESSAGES_DAYS
+        value: 180
+      - key: RETENTION_NOTIFICATIONS_DAYS
+        value: 30
+      - key: RETENTION_AUDIT_DAYS
+        value: 365
+      - key: RETENTION_REQUESTS_DAYS
+        value: 180
+      - key: RETENTION_SWEEP_INTERVAL_HOURS
+        value: 24

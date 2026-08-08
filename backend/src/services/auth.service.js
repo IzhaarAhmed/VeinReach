@@ -2,6 +2,7 @@ import crypto from 'crypto';
 import { User } from '../models/user.model.js';
 import { ApiError } from '../utils/ApiError.js';
 import { env } from '../config/env.js';
+import { PRIVACY_POLICY_VERSION } from '../constants/index.js';
 import { sendMail } from '../config/mailer.js';
 import { sendSms } from '../config/sms.js';
 import { logger } from '../utils/logger.js';
@@ -372,6 +373,9 @@ export async function register(input) {
     location: input.location
       ? { type: 'Point', coordinates: input.location.coordinates }
       : undefined,
+    // Record which policy text was accepted, not merely that a box was ticked —
+    // "they agreed to something, once" is not evidence of anything later.
+    consent: { privacyVersion: PRIVACY_POLICY_VERSION, acceptedAt: new Date() },
   });
   await user.setPassword(input.password);
 
@@ -426,6 +430,11 @@ export async function resendVerification(userId) {
 export async function login({ email, password }) {
   const user = await User.findOne({ email }).select('+passwordHash +refreshTokens');
   if (!user) throw ApiError.unauthorized('Invalid credentials');
+  // A closed account fails exactly like an unknown one. Saying "this account was
+  // deleted" would confirm the address had been registered, which is the same
+  // enumeration oracle the password-reset flow goes to lengths to avoid — and a
+  // tombstone's email is rewritten anyway, so this is belt-and-braces.
+  if (user.deletedAt) throw ApiError.unauthorized('Invalid credentials');
   if (user.isSuspended) throw ApiError.forbidden('Account suspended');
 
   const valid = await user.verifyPassword(password);
@@ -451,6 +460,7 @@ export async function refresh(oldRefreshToken) {
 
   const user = await User.findById(payload.sub).select('+refreshTokens');
   if (!user) throw ApiError.unauthorized('User no longer exists');
+  if (user.deletedAt) throw ApiError.unauthorized('This account has been closed');
   // Suspending already clears stored refresh tokens, so this is belt-and-braces
   // — but it means a session cannot be revived if that clearing ever fails.
   if (user.isSuspended) throw ApiError.forbidden('Account suspended');
@@ -486,6 +496,6 @@ export async function logout(userId, refreshTokenToRevoke) {
 
 export async function getProfile(userId) {
   const user = await User.findById(userId);
-  if (!user) throw ApiError.notFound('User not found');
+  if (!user || user.deletedAt) throw ApiError.notFound('User not found');
   return user.toJSON();
 }

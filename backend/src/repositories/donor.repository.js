@@ -22,6 +22,11 @@ export function findNearbyDonors({ coordinates, groups, maxDistanceMeters, limit
         query: {
           role: 'donor',
           isSuspended: false,
+          // Closed accounts are anonymized tombstones, not rows — they keep a
+          // blood group and a donation count, so they must be excluded
+          // explicitly. Anonymizing also clears `location`, which would drop
+          // them from $geoNear anyway; this does not rely on that.
+          deletedAt: null,
           bloodGroup: { $in: groups },
           'donorProfile.isAvailable': true,
         },
@@ -65,6 +70,11 @@ export async function countByRadius({ coordinates, groups, radiiKm }) {
         query: {
           role: 'donor',
           isSuspended: false,
+          // Closed accounts are anonymized tombstones, not rows — they keep a
+          // blood group and a donation count, so they must be excluded
+          // explicitly. Anonymizing also clears `location`, which would drop
+          // them from $geoNear anyway; this does not rely on that.
+          deletedAt: null,
           bloodGroup: { $in: groups },
           'donorProfile.isAvailable': true,
         },

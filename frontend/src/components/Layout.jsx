@@ -303,6 +303,20 @@ export default function Layout() {
         <main id="main-content" tabIndex={-1} className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
           <Outlet />
         </main>
+
+        {/* A published policy has to be reachable from inside the app, not only
+            from the registration form. */}
+        <footer className="mx-auto max-w-6xl px-4 pb-8 sm:px-6">
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-white/10 pt-5 text-xs text-white/40">
+            <span>© {new Date().getFullYear()} VeinReach</span>
+            <Link to="/privacy" className="transition hover:text-white/70">
+              Privacy Policy
+            </Link>
+            <Link to="/dashboard/profile" className="transition hover:text-white/70">
+              Your data
+            </Link>
+          </div>
+        </footer>
       </div>
 
       {/* Real-time toasts */}

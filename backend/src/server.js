@@ -9,6 +9,7 @@ import { initR2 } from './config/r2.js';
 import { initSms } from './config/sms.js';
 import { initSocket } from './realtime/io.js';
 import { startRequestWorker, stopRequestWorker } from './workers/request.worker.js';
+import { startRetentionWorker, stopRetentionWorker } from './workers/retention.worker.js';
 import { ensureAdmins } from './services/bootstrap.service.js';
 import { logger } from './utils/logger.js';
 
@@ -29,6 +30,7 @@ async function start() {
   const server = http.createServer(app);
   initSocket(server);
   startRequestWorker();
+  startRetentionWorker();
 
   server.listen(env.port, () => {
     logger.info(`VeinReach API listening on http://localhost:${env.port}`);
@@ -38,6 +40,7 @@ async function start() {
   const shutdown = async (signal) => {
     logger.warn(`${signal} received — shutting down`);
     stopRequestWorker();
+    stopRetentionWorker();
     server.close(async () => {
       await disconnectDB();
       process.exit(0);

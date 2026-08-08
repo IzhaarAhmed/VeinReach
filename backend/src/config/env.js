@@ -116,6 +116,32 @@ export const env = {
     resendCooldownSec: num(process.env.OTP_RESEND_COOLDOWN_SEC, 60),
   },
 
+  /**
+   * Published grievance contact (DPDP §13). The SPA renders its own
+   * VITE_PRIVACY_CONTACT on the policy page; this copy is for mail the server
+   * sends, so the two should be set to the same address.
+   */
+  privacyContact: process.env.PRIVACY_CONTACT || '',
+
+  /**
+   * Data retention, in days. Nothing here is a legal minimum — they are the
+   * "privacy-maximal" defaults, deliberately short, and every one is tunable
+   * per-deployment. Audit logs outlive the rest because they are the only
+   * forensic record of an account compromise or an abuse report.
+   *
+   * Donation records are absent on purpose: they are the donation-history
+   * ledger and are retained indefinitely, then anonymized (never deleted) when
+   * an account is closed, so a recipient's and a hospital's own records survive.
+   */
+  retention: {
+    enabled: bool(process.env.RETENTION_ENABLED, true),
+    messagesDays: num(process.env.RETENTION_MESSAGES_DAYS, 180), // 6 months
+    notificationsDays: num(process.env.RETENTION_NOTIFICATIONS_DAYS, 30),
+    auditDays: num(process.env.RETENTION_AUDIT_DAYS, 365), // 12 months
+    requestsDays: num(process.env.RETENTION_REQUESTS_DAYS, 180), // 6 months
+    sweepIntervalHours: num(process.env.RETENTION_SWEEP_INTERVAL_HOURS, 24),
+  },
+
   rules: {
     minDonorAge: num(process.env.MIN_DONOR_AGE, 18),
     maxDonorAge: num(process.env.MAX_DONOR_AGE, 65),

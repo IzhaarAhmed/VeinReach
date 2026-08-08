@@ -7,7 +7,7 @@ const PROFILE_FIELDS = ['fullName', 'city', 'state', 'emergencyContact', 'weight
 
 export async function updateProfile(userId, input) {
   const user = await User.findById(userId);
-  if (!user) throw ApiError.notFound('User not found');
+  if (!user || user.deletedAt) throw ApiError.notFound('User not found');
 
   for (const field of PROFILE_FIELDS) {
     if (input[field] !== undefined) user[field] = input[field];
@@ -33,7 +33,7 @@ function assertOwnedKey(key, userId, purposes) {
 export async function setAvatar(userId, key) {
   assertOwnedKey(key, userId, ['profile_image']);
   const user = await User.findById(userId);
-  if (!user) throw ApiError.notFound('User not found');
+  if (!user || user.deletedAt) throw ApiError.notFound('User not found');
 
   const previousKey = user.avatar?.key;
   user.avatar = { key, url: storage.publicUrl(key), uploadedAt: new Date() };
@@ -52,7 +52,7 @@ const MAX_DOCUMENTS = 10;
 export async function addDocument(userId, { key, docType, label }) {
   assertOwnedKey(key, userId, ['verification_doc', 'hospital_doc']);
   const user = await User.findById(userId);
-  if (!user) throw ApiError.notFound('User not found');
+  if (!user || user.deletedAt) throw ApiError.notFound('User not found');
   if (user.documents.length >= MAX_DOCUMENTS)
     throw ApiError.badRequest(`Document limit reached (${MAX_DOCUMENTS})`);
 
@@ -69,7 +69,7 @@ export async function addDocument(userId, { key, docType, label }) {
  */
 export async function getDocumentUrl(userId, documentId) {
   const user = await User.findById(userId);
-  if (!user) throw ApiError.notFound('User not found');
+  if (!user || user.deletedAt) throw ApiError.notFound('User not found');
   const doc = user.documents.id(documentId);
   if (!doc) throw ApiError.notFound('Document not found');
 
@@ -83,7 +83,7 @@ const MAX_FCM_TOKENS = 5;
 
 export async function addFcmToken(userId, token) {
   const user = await User.findById(userId).select('+fcmTokens');
-  if (!user) throw ApiError.notFound('User not found');
+  if (!user || user.deletedAt) throw ApiError.notFound('User not found');
 
   user.fcmTokens = [...new Set([...user.fcmTokens, token])].slice(-MAX_FCM_TOKENS);
   await user.save();
@@ -106,7 +106,7 @@ export async function removeFcmToken(userId, token) {
  */
 export async function updateDonorProfile(userId, input) {
   const user = await User.findById(userId);
-  if (!user) throw ApiError.notFound('User not found');
+  if (!user || user.deletedAt) throw ApiError.notFound('User not found');
   if (user.role !== 'donor')
     throw ApiError.forbidden('Only donor accounts have a donor profile');
 

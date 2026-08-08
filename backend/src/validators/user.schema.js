@@ -25,6 +25,18 @@ export const fcmTokenSchema = z.object({
   token: z.string().min(10).max(4096),
 });
 
+/**
+ * Closing an account. The password re-authenticates an irreversible action, and
+ * the literal confirmation phrase makes it impossible to trigger by replaying a
+ * bare DELETE — a misrouted click cannot erase a donation history.
+ */
+export const deleteAccountSchema = z.object({
+  password: z.string().min(1, 'Your password is required to close the account'),
+  confirm: z.literal('DELETE', {
+    errorMap: () => ({ message: 'Type DELETE to confirm' }),
+  }),
+});
+
 // 'ineligible' is system-derived (cooldown/age/weight), never client-set.
 export const updateDonorProfileSchema = z
   .object({

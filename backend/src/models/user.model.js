@@ -124,6 +124,27 @@ const userSchema = new Schema(
 
     isSuspended: { type: Boolean, default: false },
 
+    /**
+     * Set when the user closes their account. The document is kept as an
+     * anonymized tombstone rather than removed, because donations reference it
+     * and deleting the row would erase the recipient's and the verifying
+     * hospital's own records too. Every personal field is overwritten first
+     * (see privacy.service.js), so a tombstone holds no personal data.
+     *
+     * Indexed because every donor-facing query has to exclude these.
+     */
+    deletedAt: { type: Date, default: null, index: true },
+
+    /**
+     * Which version of the privacy policy this account accepted, and when.
+     * Records consent at registration; comparing against
+     * PRIVACY_POLICY_VERSION identifies users who have not seen the current text.
+     */
+    consent: {
+      privacyVersion: { type: String },
+      acceptedAt: { type: Date },
+    },
+
     // Hashed refresh tokens currently valid for this user (supports multi-device + rotation).
     refreshTokens: { type: [String], default: [], select: false },
 
@@ -165,6 +186,21 @@ const userSchema = new Schema(
 
 /* Geospatial index for nearby-donor queries (spec: 2dsphere index). */
 userSchema.index({ location: '2dsphere' });
+
+/**
+ * findById that never hands back a closed account.
+ *
+ * Use this wherever the id comes from somebody else — a chat peer, a meetup
+ * invitee, a report target. A tombstone is a real document with a real _id, so a
+ * plain findById happily returns one, and the caller then builds new records
+ * around an account that asked to be erased.
+ *
+ * `deletedAt: null` also matches documents predating the field, which is what
+ * makes this safe to adopt without a migration.
+ */
+userSchema.statics.findActiveById = function findActiveById(id) {
+  return this.findOne({ _id: id, deletedAt: null });
+};
 
 userSchema.methods.setPassword = async function setPassword(plain) {
   this.passwordHash = await bcrypt.hash(plain, 12);

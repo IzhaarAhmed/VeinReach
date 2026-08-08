@@ -51,13 +51,21 @@ export async function platformStats() {
     availableDonors,
     avgResponseMin,
   ] = await Promise.all([
-    User.countDocuments({}),
-    countByField(User, 'role'),
+    // Closed accounts are kept as tombstones, so an unfiltered count would keep
+    // reporting people who have left as platform users.
+    User.countDocuments({ deletedAt: null }),
+    // Same exclusion as totalUsers, so the per-role breakdown still sums to it.
+    countByField(User, 'role', { deletedAt: null }),
     countByField(BloodRequest, 'status'),
     countByField(BloodRequest, 'bloodGroup'),
     BloodRequest.countDocuments({ status: 'active' }),
     Donation.countDocuments({ status: 'verified' }),
-    User.countDocuments({ role: 'donor', 'donorProfile.isAvailable': true, isSuspended: false }),
+    User.countDocuments({
+      role: 'donor',
+      'donorProfile.isAvailable': true,
+      isSuspended: false,
+      deletedAt: null,
+    }),
     avgFirstResponseMinutes(),
   ]);
 

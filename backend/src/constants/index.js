@@ -86,3 +86,34 @@ export const MODERATION_ACTIONS = ['none', 'warn', 'suspend', 'unsuspend', 'repu
  * are shortages (spec: publish stock shortages); `available` is availability.
  */
 export const STOCK_LEVELS = ['available', 'low', 'critical', 'out'];
+
+/* ── Privacy ───────────────────────────────────────────────────────────── */
+
+/**
+ * Version of the privacy policy a user consented to at registration, stored on
+ * the account. Bump this whenever the policy changes materially — the stored
+ * value is what lets you tell who has yet to accept the current text.
+ *
+ * Must match PRIVACY_POLICY.version in frontend/src/content/privacyPolicy.js.
+ */
+export const PRIVACY_POLICY_VERSION = '2026-08-08';
+
+/**
+ * Sentinels written over a closed account's personal fields. The schema marks
+ * most of them `required`, so anonymizing cannot simply unset them — it
+ * overwrites with a value that is valid, obviously non-personal, and impossible
+ * to confuse with real data.
+ *
+ * `.invalid` is reserved by RFC 2606, so the tombstone email can never collide
+ * with, or be mistaken for, a deliverable address. It stays per-user unique
+ * because `email` carries a unique index.
+ */
+export const ANONYMIZED = {
+  fullName: 'Deleted user',
+  emailFor: (id) => `deleted-${id}@deleted.invalid`,
+  mobile: 'deleted',
+  // Unix epoch — a valid Date that is transparently not a real date of birth.
+  dateOfBirth: new Date(0),
+  weight: 0,
+  gender: 'other',
+};

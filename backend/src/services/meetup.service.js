@@ -16,8 +16,8 @@ export async function createMeetup(recipientId, { donorId, lng, lat, bloodGroup 
     throw ApiError.badRequest('You cannot invite yourself');
 
   const [recipient, donor] = await Promise.all([
-    User.findById(recipientId),
-    User.findById(donorId),
+    User.findActiveById(recipientId),
+    User.findActiveById(donorId),
   ]);
   if (!donor || donor.role !== 'donor') throw ApiError.notFound('Donor not found');
   const donorCoords = donor.location?.coordinates;
