@@ -1,9 +1,0 @@
-# Cloudflare Pages / Netlify SPA fallback.
-#
-# The app is a client-routed SPA: only index.html exists on disk, so a hard
-# refresh or shared link to any deep path (/requests/abc, /profile) would 404
-# without this rule. Serve index.html and let the router resolve the path.
-#
-# 200 (rewrite), not 301/302 — the URL in the address bar must stay intact for
-# the router to read it.
-/*    /index.html   200
